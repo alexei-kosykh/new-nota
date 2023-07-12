@@ -3,3 +3,5 @@ node_modules
 dist
 
 Readme.txt
+
+.env
