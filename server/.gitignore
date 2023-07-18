@@ -5,3 +5,5 @@ dist
 Readme.txt
 
 .env
+
+/src/interface

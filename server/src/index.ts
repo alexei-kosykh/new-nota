@@ -1,52 +1,25 @@
-import express, { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
-import { validationResult } from 'express-validator/src/validation-result';
+import express from 'express';
 
 import { registerValidation } from './validations/auth';
+import { connectToDb, getDb } from './db';
 
-mongoose
-  .connect(
-    'mongodb+srv://alexeikosykh97:M9T4NmrDGcl5vtPi@cluster0.ul5wlao.mongodb.net/?retryWrites=true&w=majority'
-  )
-  .then(() => {
-    console.log('DB connected');
-  })
-  .catch((err) => console.log('DB error', err));
+import checkAuth from './middleware/checkAuth.js';
+import * as UserService from './services/UserService';
 
 const app = express();
+let db: any;
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
 
-// app.get('/', (req: Request, res: Response) => {
-//   res.send('client');
-// });
+app.post('/auth/login', UserService.login);
 
-app.post(
-  '/auth/register',
-  registerValidation,
-  (req: Request, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json(errors.array());
-    }
+app.post('/auth/register', registerValidation, UserService.register);
 
-    res.json({
-      success: true,
-    });
-  }
-);
+app.get('/auth/me', checkAuth, UserService.safelyGetMe);
 
-// app.get('/auth', (req: Request, res: Response) => {
-//   console.log(req.body);
-//   res.json({ success: true });
-// });
-
-// app.get('/dashboard', (req: Request, res: Response) => {
-//   res.json({ services: ['one', 'two', 'three'] });
-// });
-
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server started on port ${port}`);
+
+  await connectToDb();
 });
